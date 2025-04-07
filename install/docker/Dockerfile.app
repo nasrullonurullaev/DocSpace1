@@ -302,10 +302,11 @@ CMD ["server.js", "ASC.Sdk"]
 ######################################################################
 FROM noderun AS docspace_node_services
 
-# Install supervisor
 RUN apt-get update && \
-    apt-get install -y supervisor && \
+    apt-get install -yq apt-transport-https ca-certificates curl gnupg && \
+    apt-get install -yq supervisor && \
     mkdir -p /var/log/supervisor
+
 
 
 # ASC.Editors
