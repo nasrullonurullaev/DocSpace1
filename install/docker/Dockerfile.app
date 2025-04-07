@@ -299,24 +299,45 @@ COPY --from=src --chown=onlyoffice:onlyoffice ${SRC_PATH}/buildtools/install/doc
 COPY --from=build-node --chown=onlyoffice:onlyoffice ${SRC_PATH}/publish/web/sdk/ .
 
 CMD ["server.js", "ASC.Sdk"]
+######################################################################
+FROM noderun AS docspace_node_services
 
-## Doceditor ##
-FROM noderun AS doceditor
+# Install supervisor
+RUN apt-get update && \
+    apt-get install -y supervisor && \
+    mkdir -p /var/log/supervisor
+
+
+# ASC.Editors
 WORKDIR ${BUILD_PATH}/products/ASC.Editors/editor
 
 COPY --from=src --chown=onlyoffice:onlyoffice ${SRC_PATH}/buildtools/install/docker/docker-entrypoint.py ./docker-entrypoint.py
 COPY --from=build-node --chown=onlyoffice:onlyoffice ${SRC_PATH}/publish/web/editor/ .
 
-CMD ["server.js", "ASC.Editors"]
-
-## Login ##
+# ASC.Login
 FROM noderun AS login
 WORKDIR ${BUILD_PATH}/products/ASC.Login/login
 
 COPY --from=src --chown=onlyoffice:onlyoffice ${SRC_PATH}/buildtools/install/docker/docker-entrypoint.py ./docker-entrypoint.py
 COPY --from=build-node --chown=onlyoffice:onlyoffice ${SRC_PATH}/publish/web/login/ .
 
-CMD ["server.js", "ASC.Login"]
+# ASC.Socket.IO
+WORKDIR ${BUILD_PATH}/services/ASC.Socket.IO/
+
+COPY --from=src --chown=onlyoffice:onlyoffice ${SRC_PATH}/buildtools/install/docker/docker-entrypoint.py ./docker-entrypoint.py
+COPY --from=build-node --chown=onlyoffice:onlyoffice ${SRC_PATH}/server/common/ASC.Socket.IO .
+
+# ASC.SsoAuth
+WORKDIR ${BUILD_PATH}/services/ASC.SsoAuth/
+
+COPY --from=src --chown=onlyoffice:onlyoffice ${SRC_PATH}/buildtools/install/docker/docker-entrypoint.py ./docker-entrypoint.py
+COPY --from=build-node --chown=onlyoffice:onlyoffice  ${SRC_PATH}/server/common/ASC.SsoAuth .
+
+# Copy supervisord config
+COPY --from=src --chown=onlyoffice:onlyoffice ${SRC_PATH}/buildtools/install/docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+CMD ["/usr/bin/supervisord", "-n"]
+##########################################################################################################################
 
 ## ASC.Data.Backup.BackgroundTasks ##
 FROM dotnetrun AS backup_background
@@ -419,24 +440,6 @@ COPY --from=src --chown=onlyoffice:onlyoffice ${SRC_PATH}/buildtools/install/doc
 COPY --from=build-dotnet --chown=onlyoffice:onlyoffice ${SRC_PATH}/publish/services/ASC.People/service/ .
 
 CMD ["ASC.People.dll", "ASC.People"]
-
-## ASC.Socket.IO ##
-FROM noderun AS socket
-WORKDIR ${BUILD_PATH}/services/ASC.Socket.IO/
-
-COPY --from=src --chown=onlyoffice:onlyoffice ${SRC_PATH}/buildtools/install/docker/docker-entrypoint.py ./docker-entrypoint.py
-COPY --from=build-node --chown=onlyoffice:onlyoffice ${SRC_PATH}/server/common/ASC.Socket.IO .
-
-CMD  ["server.js", "ASC.Socket.IO"]
-
-## ASC.SsoAuth ##
-FROM noderun AS ssoauth
-WORKDIR ${BUILD_PATH}/services/ASC.SsoAuth/
-
-COPY --from=src --chown=onlyoffice:onlyoffice ${SRC_PATH}/buildtools/install/docker/docker-entrypoint.py ./docker-entrypoint.py
-COPY --from=build-node --chown=onlyoffice:onlyoffice  ${SRC_PATH}/server/common/ASC.SsoAuth .
-
-CMD ["app.js", "ASC.SsoAuth"]
 
 ## ASC.Studio.Notify ##
 FROM dotnetrun AS studio_notify
