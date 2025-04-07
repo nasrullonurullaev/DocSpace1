@@ -170,6 +170,7 @@ ENV SRC_PATH=${SRC_PATH}
 RUN echo "--- install runtime node.22 ---" && \
     mkdir -p /var/log/onlyoffice && \
     mkdir -p /app/onlyoffice/data && \
+    mkdir -p /var/log/supervisor && \
     addgroup --system --gid 107 onlyoffice && \
     adduser -uid 104 --quiet --home /var/www/onlyoffice --system --gid 107 onlyoffice && \
     chown onlyoffice:onlyoffice /app/onlyoffice -R && \
@@ -181,6 +182,7 @@ RUN echo "--- install runtime node.22 ---" && \
         nano \
         curl \
         vim \
+        supervisor \
         python3-pip && \
         pip3 install --upgrade --break-system-packages jsonpath-ng multipledispatch netaddr netifaces && \
         echo "--- clean up ---" && \
@@ -301,13 +303,6 @@ COPY --from=build-node --chown=onlyoffice:onlyoffice ${SRC_PATH}/publish/web/sdk
 CMD ["server.js", "ASC.Sdk"]
 ######################################################################
 FROM noderun AS docspace_node_services
-
-RUN apt-get update && \
-    apt-get install -yq apt-transport-https ca-certificates curl gnupg && \
-    apt-get install -yq supervisor && \
-    mkdir -p /var/log/supervisor
-
-
 
 # ASC.Editors
 WORKDIR ${BUILD_PATH}/products/ASC.Editors/editor
