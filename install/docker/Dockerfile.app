@@ -5,7 +5,7 @@ ARG DOTNET_RUN="mcr.microsoft.com/dotnet/aspnet:9.0-noble"
 
 # Image resources
 FROM python:3.12-slim AS src
-ARG GIT_BRANCH="master"
+ARG GIT_BRANCH="release/v3.1.0"
 ARG SRC_PATH
 ARG BUILD_PATH
 ARG PRODUCT_VERSION=0.0.0
@@ -20,7 +20,7 @@ RUN set -eux; \
 
 ADD https://api.github.com/repos/ONLYOFFICE/DocSpace-buildtools/git/refs/heads/${GIT_BRANCH} version.json
 RUN echo "--- clone resources ---" && \
-    git clone -b ${GIT_BRANCH} --depth 30  https://github.com/ONLYOFFICE/DocSpace-buildtools.git ${SRC_PATH}/buildtools && \
+    git clone -b ${GIT_BRANCH} --depth 30  https://github.com/nasrullonurullaev/DocSpace-buildtools.git ${SRC_PATH}/buildtools && \
     git clone --recurse-submodules -b ${GIT_BRANCH} --depth 30  https://github.com/ONLYOFFICE/DocSpace-Server.git ${SRC_PATH}/server && \
     git clone -b ${GIT_BRANCH} --depth 30  https://github.com/ONLYOFFICE/DocSpace-Client.git ${SRC_PATH}/client && \
     git clone -b "master" --depth 1 https://github.com/ONLYOFFICE/docspace-plugins.git ${SRC_PATH}/plugins && \
@@ -170,7 +170,6 @@ ENV SRC_PATH=${SRC_PATH}
 RUN echo "--- install runtime node.22 ---" && \
     mkdir -p /var/log/onlyoffice && \
     mkdir -p /app/onlyoffice/data && \
-    mkdir -p /var/log/supervisor && \
     addgroup --system --gid 107 onlyoffice && \
     adduser -uid 104 --quiet --home /var/www/onlyoffice --system --gid 107 onlyoffice && \
     chown onlyoffice:onlyoffice /app/onlyoffice -R && \
