@@ -292,16 +292,15 @@ RUN echo "--- install runtime node.22 ---" && \
     
     CMD ["/usr/local/openresty/bin/openresty", "-g", "daemon off;"]
 
+######################################################################
 ## Sdk ##
-FROM noderun AS sdk
+FROM noderun AS docspace_node_services
+
 WORKDIR ${BUILD_PATH}/products/ASC.Sdk/sdk
 
 COPY --from=src --chown=onlyoffice:onlyoffice ${SRC_PATH}/buildtools/install/docker/docker-entrypoint.py ./docker-entrypoint.py
 COPY --from=build-node --chown=onlyoffice:onlyoffice ${SRC_PATH}/publish/web/sdk/ .
 
-CMD ["server.js", "ASC.Sdk"]
-######################################################################
-FROM noderun AS docspace_node_services
 
 # ASC.Editors
 WORKDIR ${BUILD_PATH}/products/ASC.Editors/editor
@@ -329,8 +328,6 @@ COPY --from=build-node --chown=onlyoffice:onlyoffice  ${SRC_PATH}/server/common/
 
 # Copy supervisord config
 COPY --from=src --chown=onlyoffice:onlyoffice ${SRC_PATH}/buildtools/install/docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-
-CMD ["/usr/bin/supervisord", "-n"]
 ##########################################################################################################################
 
 ## ASC.Data.Backup.BackgroundTasks ##
