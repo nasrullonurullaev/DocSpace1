@@ -192,7 +192,7 @@ RUN echo "--- install runtime node.22 ---" && \
     COPY --from=src --chown=onlyoffice:onlyoffice /app/onlyoffice/config/* /app/onlyoffice/config/
     USER onlyoffice
     EXPOSE 5050
-    ENTRYPOINT ["python3", "docker-entrypoint.py"]
+    ENTRYPOINT ["docker-entrypoint.sh"]
     
     FROM eclipse-temurin:21-jre-alpine AS javarun
     ARG BUILD_PATH
@@ -298,36 +298,38 @@ FROM noderun AS docspace_node_services
 
 WORKDIR ${BUILD_PATH}/products/ASC.Sdk/sdk
 
-COPY --from=src --chown=onlyoffice:onlyoffice ${SRC_PATH}/buildtools/install/docker/docker-entrypoint.py ./docker-entrypoint.py
+COPY --from=src --chown=onlyoffice:onlyoffice ${SRC_PATH}/buildtools/install/docker/docker-entrypoint.sh ./docker-entrypoint.sh
 COPY --from=build-node --chown=onlyoffice:onlyoffice ${SRC_PATH}/publish/web/sdk/ .
 
 
 # ASC.Editors
 WORKDIR ${BUILD_PATH}/products/ASC.Editors/editor
 
-COPY --from=src --chown=onlyoffice:onlyoffice ${SRC_PATH}/buildtools/install/docker/docker-entrypoint.py ./docker-entrypoint.py
+COPY --from=src --chown=onlyoffice:onlyoffice ${SRC_PATH}/buildtools/install/docker/docker-entrypoint.sh ./docker-entrypoint.sh
 COPY --from=build-node --chown=onlyoffice:onlyoffice ${SRC_PATH}/publish/web/editor/ .
 
 # ASC.Login
 WORKDIR ${BUILD_PATH}/products/ASC.Login/login
 
-COPY --from=src --chown=onlyoffice:onlyoffice ${SRC_PATH}/buildtools/install/docker/docker-entrypoint.py ./docker-entrypoint.py
+COPY --from=src --chown=onlyoffice:onlyoffice ${SRC_PATH}/buildtools/install/docker/docker-entrypoint.sh ./docker-entrypoint.sh
 COPY --from=build-node --chown=onlyoffice:onlyoffice ${SRC_PATH}/publish/web/login/ .
 
 # ASC.Socket.IO
 WORKDIR ${BUILD_PATH}/services/ASC.Socket.IO/
 
-COPY --from=src --chown=onlyoffice:onlyoffice ${SRC_PATH}/buildtools/install/docker/docker-entrypoint.py ./docker-entrypoint.py
+COPY --from=src --chown=onlyoffice:onlyoffice ${SRC_PATH}/buildtools/install/docker/docker-entrypoint.sh ./docker-entrypoint.sh
 COPY --from=build-node --chown=onlyoffice:onlyoffice ${SRC_PATH}/server/common/ASC.Socket.IO .
 
 # ASC.SsoAuth
 WORKDIR ${BUILD_PATH}/services/ASC.SsoAuth/
 
-COPY --from=src --chown=onlyoffice:onlyoffice ${SRC_PATH}/buildtools/install/docker/docker-entrypoint.py ./docker-entrypoint.py
+COPY --from=src --chown=onlyoffice:onlyoffice ${SRC_PATH}/buildtools/install/docker/docker-entrypoint.sh ./docker-entrypoint.sh
 COPY --from=build-node --chown=onlyoffice:onlyoffice  ${SRC_PATH}/server/common/ASC.SsoAuth .
 
 # Copy supervisord config
 COPY --from=src --chown=onlyoffice:onlyoffice ${SRC_PATH}/buildtools/install/docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+RUN chmod +x docker-entrypoint.sh
 ##########################################################################################################################
 
 ## ASC.Data.Backup.BackgroundTasks ##
